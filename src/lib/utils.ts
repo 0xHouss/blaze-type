@@ -100,7 +100,7 @@ export function getRandomText(
       }
 
       // Capitalize the first word of the sentence
-      if (sentenceWords.length > 0) {
+      if (sentenceWords.length > 0 && punctuation) {
         const w = sentenceWords[0];
         sentenceWords[0] = w[0].toUpperCase() + w.slice(1);
       }
