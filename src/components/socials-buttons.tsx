@@ -48,7 +48,7 @@ export function TeamButton() {
 
 export function GithubButton() {
   return (
-    <Tooltiped content="Checkout our Githubs" side="left">
+    <Tooltiped content="Checkout the source code" side="left">
       <Link className={buttonVariants({ variant: "outline", size: "icon" })} href={"https://github.com/0xHouss/blaze-type"} target="_blank">
         <FontAwesomeIcon icon={faGithub} size="xl" />
         <span className="sr-only">Github profile</span>
