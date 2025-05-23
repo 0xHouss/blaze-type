@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/dialog";
 import { Toggle } from "@/components/ui/toggle";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { cn, getFromLocalStorage, saveToLocalStorage } from "@/lib/utils";
 import { faDiscord, faGithub } from "@fortawesome/free-brands-svg-icons";
 import { faFont, faHashtag, faQuestion, faQuoteLeft } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -23,7 +24,6 @@ import { ClockIcon, HandHeartIcon, UsersIcon } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Quote } from "./actions";
-import { getFromLocalStorage, saveToLocalStorage } from "@/lib/utils";
 
 export type GameMode = "time" | "words" | "quote";
 export type MaxTime = 15 | 30 | 60 | 120;
@@ -132,22 +132,20 @@ interface MenuBarProps {
 
 function MenuBar({ gameMode, setGameMode, maxTime, setMaxTime, maxWords, setMaxWords, maxSize, setMaxSize, numbers, setNumbers, punctuation, setPunctuation }: MenuBarProps) {
   return (
-    <div className="flex w-fit px-3 justify-center items-center rounded-md bg-secondary gap-3 transition-all">
-      {["time", "words"].includes(gameMode) && (
-        <>
-          <Toggle pressed={punctuation} onPressedChange={setPunctuation} className="gap-1">
-            <FontAwesomeIcon icon={faQuestion} />
-            <span>Punctuation</span>
-          </Toggle>
+    <div className="relative flex w-fit px-3 justify-center items-center rounded-md bg-secondary gap-3 transition-all">
+      <div className={cn("absolute right-[105%] rounded-md bg-secondary flex px-2 opacity-100 transition-all", {
+        "opacity-0": gameMode === "quote"
+      })}>
+        <Toggle pressed={punctuation} onPressedChange={setPunctuation} className="gap-1">
+          <FontAwesomeIcon icon={faQuestion} />
+          <span>Punctuation</span>
+        </Toggle>
 
-          <Toggle pressed={numbers} onPressedChange={setNumbers} className="gap-1">
-            <FontAwesomeIcon icon={faHashtag} />
-            <span>Numbers</span>
-          </Toggle>
-
-          <div className="h-5 w-2 bg-background rounded-full" />
-        </>
-      )}
+        <Toggle pressed={numbers} onPressedChange={setNumbers} className="gap-1">
+          <FontAwesomeIcon icon={faHashtag} />
+          <span>Numbers</span>
+        </Toggle>
+      </div>
 
       <ToggleGroup type="single" defaultValue={gameMode} value={gameMode} onValueChange={(value: GameMode) => value ? setGameMode(value) : {}}>
         <ToggleGroupItem value="time" className="gap-1">
@@ -164,34 +162,34 @@ function MenuBar({ gameMode, setGameMode, maxTime, setMaxTime, maxWords, setMaxW
         </ToggleGroupItem>
       </ToggleGroup>
 
-      <div className="h-5 w-2 bg-background rounded-full" />
+      <div className="absolute left-[105%] flex items-center rounded-md bg-secondary px-2">
+        {gameMode === "time" && (
+          <ToggleGroup type="single" defaultValue={`${maxTime}s`} value={`${maxTime}s`} onValueChange={value => value ? setMaxTime(+value.replace('s', '') as MaxTime) : {}}>
+            <ToggleGroupItem value="15s">15s</ToggleGroupItem>
+            <ToggleGroupItem value="30s">30s</ToggleGroupItem>
+            <ToggleGroupItem value="60s">60s</ToggleGroupItem>
+            <ToggleGroupItem value="120s">120s</ToggleGroupItem>
+          </ToggleGroup>
+        )}
 
-      {gameMode === "time" && (
-        <ToggleGroup type="single" defaultValue={`${maxTime}s`} value={`${maxTime}s`} onValueChange={value => value ? setMaxTime(+value.replace('s', '') as MaxTime) : {}}>
-          <ToggleGroupItem value="15s">15s</ToggleGroupItem>
-          <ToggleGroupItem value="30s">30s</ToggleGroupItem>
-          <ToggleGroupItem value="60s">60s</ToggleGroupItem>
-          <ToggleGroupItem value="120s">120s</ToggleGroupItem>
-        </ToggleGroup>
-      )}
+        {gameMode === "words" && (
+          <ToggleGroup type="single" defaultValue={"" + maxWords} value={"" + maxWords} onValueChange={value => value ? setMaxWords(+value as MaxWords) : {}}>
+            <ToggleGroupItem value="10">10</ToggleGroupItem>
+            <ToggleGroupItem value="25">25</ToggleGroupItem>
+            <ToggleGroupItem value="50">50</ToggleGroupItem>
+            <ToggleGroupItem value="100">100</ToggleGroupItem>
+          </ToggleGroup>
+        )}
 
-      {gameMode === "words" && (
-        <ToggleGroup type="single" defaultValue={"" + maxWords} value={"" + maxWords} onValueChange={value => value ? setMaxWords(+value as MaxWords) : {}}>
-          <ToggleGroupItem value="10">10</ToggleGroupItem>
-          <ToggleGroupItem value="25">25</ToggleGroupItem>
-          <ToggleGroupItem value="50">50</ToggleGroupItem>
-          <ToggleGroupItem value="100">100</ToggleGroupItem>
-        </ToggleGroup>
-      )}
-
-      {gameMode === "quote" && (
-        <ToggleGroup type="single" defaultValue={maxSize} value={maxSize} onValueChange={value => value ? setMaxSize(value as MaxSize) : {}}>
-          <ToggleGroupItem value="all">all</ToggleGroupItem>
-          <ToggleGroupItem value="short">short</ToggleGroupItem>
-          <ToggleGroupItem value="medium">medium</ToggleGroupItem>
-          <ToggleGroupItem value="long">long</ToggleGroupItem>
-        </ToggleGroup>
-      )}
+        {gameMode === "quote" && (
+          <ToggleGroup type="single" defaultValue={maxSize} value={maxSize} onValueChange={value => value ? setMaxSize(value as MaxSize) : {}}>
+            <ToggleGroupItem value="all">all</ToggleGroupItem>
+            <ToggleGroupItem value="short">short</ToggleGroupItem>
+            <ToggleGroupItem value="medium">medium</ToggleGroupItem>
+            <ToggleGroupItem value="long">long</ToggleGroupItem>
+          </ToggleGroup>
+        )}
+      </div>
     </div>
   )
 }

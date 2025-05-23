@@ -240,6 +240,6 @@ function WordsContainer({ text, input, finished }: LettersProps) {
 
 function Caret() {
   return (
-    <div className="absolute h-[1.2em] w-[0.1em] bg-primary animate-blink rounded-full -left-[2px] top-1/2 -translate-y-1/2" />
+    <div className="absolute h-[1.2em] w-[0.1em] bg-primary animate-blink rounded-full -left-[2px]" />
   )
 }
