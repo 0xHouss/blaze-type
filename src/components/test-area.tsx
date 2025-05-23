@@ -141,19 +141,17 @@ export default function TestArea({ quotes, words, gameMode, maxTime, maxSize, ma
 
   return (
     <div
-      className="w-full max-w-3xl mx-auto text-2xl p-4 outline-none"
+      className="w-full max-w-xl mx-auto p-4 outline-none"
       onClick={() => inputRef.current?.focus()}
     >
       <div className="relative flex justify-between text-muted-foreground items-center">
-        <div className="text-lg font-bold">WPM: <span className={cn("text-white", { "text-primary": finished })}>{wpm}</span></div>
+        <div className="text-lg">WPM: <span className={cn("text-white", { "text-primary": finished })}>{wpm}</span></div>
         <h1 className={cn("absolute left-1/2 -translate-x-1/2 text-4xl font-bold text-white", { "text-primary": finished })}>{formatTime(seconds)}</h1>
-        <h1 className='text-lg font-bold'>Accuracy: <span className={cn("text-white", { "text-primary": finished })}>{accuracy}%</span></h1>
+        <h1 className='text-lg'>Accuracy: <span className={cn("text-white", { "text-primary": finished })}>{accuracy}%</span></h1>
       </div>
 
       <div className='absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-gray-400 flex flex-col gap-5 items-center'>
-        <div className='max-h-[4.8em] overflow-y-clip'>
-          <WordsContainer finished={finished} text={text} input={input} />
-        </div>
+        <WordsContainer finished={finished} text={text} input={input} />
 
         {source && <div className='text-lg'> - {source}</div>}
       </div>
@@ -220,20 +218,22 @@ function WordsContainer({ text, input, finished }: LettersProps) {
   };
 
   return (
-    <div className='flex flex-col text-left'>
-      {detailedLines.map((line, lineIdx) => (
-        <div key={"line-" + lineIdx} className={cn('flex', {
-          "hidden": lineIdx < currentLineIndex - 1,
-        })}>
-          {line.map(([char, charIdx]) => (
-            <span key={"char-" + charIdx} className={cn("relative text-[1em]/[1em] my-[0.3em]", getCharClass(charIdx))}>
-              {charIdx === input.length && !finished && <Caret />}
+    <div className='text-2xl max-h-[4.8em] overflow-y-clip'>
+      <div className='w-min h-fit'>
+        {detailedLines.map((line, lineIdx) => (
+          <div key={"line-" + lineIdx} className={cn('flex w-fit', {
+            "hidden": lineIdx < currentLineIndex - 1 || lineIdx > currentLineIndex + 2,
+          })}>
+            {line.map(([char, charIdx]) => (
+              <span key={"char-" + charIdx} className={cn("relative text-[1em]/[1em] my-[0.3em]", getCharClass(charIdx))}>
+                {charIdx === input.length && !finished && <Caret />}
 
-              {char === " " ? "\u00A0" : char}
-            </span>
-          ))}
-        </div>
-      ))}
+                {char === " " ? "\u00A0" : char}
+              </span>
+            ))}
+          </div>
+        ))}
+      </div>
     </div>
   )
 }
