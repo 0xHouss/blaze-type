@@ -74,7 +74,7 @@ export default function Game({ quotes, words }: { quotes: Quote[]; words: string
 
   return (
     <div className="relative h-[100svh]">
-      <Logo className="absolute text-white top-4 left-4" width={200} />
+      <Logo className="absolute text-white top-4 left-4 aspect-auto w-50" width={200} />
 
       <div className="absolute right-2 top-2 flex flex-col gap-3">
         <TeamButton />
