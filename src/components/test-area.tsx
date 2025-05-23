@@ -2,7 +2,7 @@
 
 import { Quote } from '@/app/actions';
 import { GameMode, MaxSize, MaxTime, MaxWords } from '@/app/game';
-import { cn, getRandomText } from '@/lib/utils';
+import { cn, getRandomText, wrapParagraph } from '@/lib/utils';
 import { useEffect, useRef, useState } from 'react';
 import { Input } from './ui/input';
 
@@ -139,34 +139,20 @@ export default function TestArea({ quotes, words, gameMode, maxTime, maxSize, ma
     }
   }
 
-  const getCharClass = (idx: number) => {
-    if (!input[idx]) return null;
-    if (input[idx] === text[idx]) return 'text-green-700';
-    return 'text-red-700';
-  };
-
   return (
     <div
       className="w-full max-w-3xl mx-auto text-2xl p-4 outline-none"
       onClick={() => inputRef.current?.focus()}
     >
       <div className="relative flex justify-between text-muted-foreground items-center">
-        <div className="text-lg font-bold">WPM: <span className="text-primary">{wpm}</span></div>
-        <h1 className="absolute left-1/2 -translate-x-1/2 text-4xl font-bold">{formatTime(seconds)}</h1>
-        <h1 className='text-lg font-bold'>Accuracy: <span className="text-primary">{accuracy}%</span></h1>
+        <div className="text-lg font-bold">WPM: <span className={cn("text-white", { "text-primary": finished })}>{wpm}</span></div>
+        <h1 className={cn("absolute left-1/2 -translate-x-1/2 text-4xl font-bold text-white", { "text-primary": finished })}>{formatTime(seconds)}</h1>
+        <h1 className='text-lg font-bold'>Accuracy: <span className={cn("text-white", { "text-primary": finished })}>{accuracy}%</span></h1>
       </div>
 
-      <div className='absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center text-gray-400 flex flex-col gap-5'>
-        <div>
-          {text.split('').map((char, idx) =>
-            <span key={idx} className={cn("relative text-5xl", getCharClass(idx))}>
-              <span className={cn("absolute h-[80%] w-1 -left-0.5 bg-primary animate-blink", {
-                "hidden": idx !== input.length || finished,
-              })} />
-
-              {char}
-            </span>
-          )}
+      <div className='absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-gray-400 flex flex-col gap-5 items-center'>
+        <div className='max-h-[4.8em] overflow-y-clip'>
+          <WordsContainer finished={finished} text={text} input={input} />
         </div>
 
         {source && <div className='text-lg'> - {source}</div>}
@@ -185,4 +171,75 @@ export default function TestArea({ quotes, words, gameMode, maxTime, maxSize, ma
       />
     </div>
   );
+}
+
+interface LettersProps {
+  text: string;
+  input: string;
+  finished: boolean;
+}
+
+function getDetailedLines(text: string) {
+  const MAX_CHARS_PER_LINE = 75;
+
+  const lines = wrapParagraph(text, MAX_CHARS_PER_LINE);
+
+  const detailedLines: [string, number][][] = []
+
+  let charIndex = 0
+
+  for (const line of lines) {
+    const detailedLine: [string, number][] = []
+
+    for (const char of line) {
+      detailedLine.push([char, charIndex])
+      charIndex++;
+    }
+
+    detailedLines.push(detailedLine)
+  }
+
+  return detailedLines
+}
+
+function WordsContainer({ text, input, finished }: LettersProps) {
+  const [detailedLines, setDetailedLines] = useState(getDetailedLines(text))
+
+  useEffect(() => {
+    setDetailedLines(getDetailedLines(text))
+  }, [text])
+
+
+  const currentCharIndex = input.length;
+  const currentLineIndex = detailedLines.findIndex(line => line.some(([_, idx]) => idx === currentCharIndex));
+
+  const getCharClass = (idx: number) => {
+    if (!input[idx]) return null;
+    if (input[idx] === text[idx]) return 'text-green-700';
+    return 'text-red-700';
+  };
+
+  return (
+    <div className='flex flex-col text-left'>
+      {detailedLines.map((line, lineIdx) => (
+        <div key={"line-" + lineIdx} className={cn('flex', {
+          "hidden": lineIdx < currentLineIndex - 1,
+        })}>
+          {line.map(([char, charIdx]) => (
+            <span key={"char-" + charIdx} className={cn("relative text-[1em]/[1em] my-[0.3em]", getCharClass(charIdx))}>
+              {charIdx === input.length && !finished && <Caret />}
+
+              {char === " " ? "\u00A0" : char}
+            </span>
+          ))}
+        </div>
+      ))}
+    </div>
+  )
+}
+
+function Caret() {
+  return (
+    <div className="absolute h-[1.2em] w-[0.1em] bg-primary animate-blink rounded-full -left-[2px] top-1/2 -translate-y-1/2" />
+  )
 }

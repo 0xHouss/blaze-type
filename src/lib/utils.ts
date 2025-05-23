@@ -131,3 +131,41 @@ export function getRandomText(
 
   return { text, source };
 }
+
+export function reconstructText(text: string, wordIdx: number, charIdx: number) {
+  const words = text.split(" ");
+
+  if (wordIdx < 0 || charIdx < 0) return "";
+
+  const typedWords = words.slice(0, wordIdx).join(" ");
+  const currentWordPart = words[wordIdx].slice(0, charIdx);
+
+  // Add space if there were previous words
+  return (typedWords ? typedWords + " " : "") + currentWordPart;
+}
+
+export function wrapParagraph(paragraph: string, maxChars: number) {
+  const words = paragraph.split(/\s+/);
+  const lines: string[] = [];
+  let currentLine = "";
+
+  for (const word of words) {
+    // If adding this word would exceed the limit
+    if ((currentLine + (currentLine ? " " : "") + word).length > maxChars) {
+      if (currentLine) lines.push(currentLine);
+      currentLine = word;
+    } else {
+      currentLine += (currentLine ? " " : "") + word;
+    }
+  }
+
+  if (currentLine) lines.push(currentLine);
+
+  lines.forEach((line, index) => {
+    if (lines[index + 1]) {
+      lines[index] += " ";
+    }
+  })
+
+  return lines;
+}
