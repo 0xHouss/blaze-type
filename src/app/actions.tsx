@@ -1,11 +1,6 @@
 'use server'
 
-export interface Quote {
-  text: string;
-  source: string;
-  id: number;
-  length: number;
-}
+import { Quote } from "@/lib/definitions";
 
 export async function getQuotes() {
   const res = await fetch("https://monkeytype.com/quotes/english.json")
