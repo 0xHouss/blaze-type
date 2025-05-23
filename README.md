@@ -40,6 +40,7 @@ A typing test game built with Next.js, Tailwind CSS and ShadcnUI. Test your typi
 ## Installation 💻
 
 1. Clone the repository:
+
    ```bash
    git clone https://github.com/0xHouss/blaze-type.git
    cd blaze-type
@@ -65,7 +66,7 @@ Blaze Type is live and hosted on [Vercel](https://vercel.com), offering lightnin
 
 🔗 **Live Demo**: [https://blaze-type.vercel.app](https://blaze-type.vercel.app)
 
-The app is automatically deployed with every push to the `main` branch via Vercel's GitHub integration, ensuring continuous delivery and up-to-date features.
+The app is automatically deployed with every push to the `master` branch via Vercel's GitHub integration, ensuring continuous delivery and up-to-date features.
 
 ## Team 👥
 
