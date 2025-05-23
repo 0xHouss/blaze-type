@@ -1,7 +1,6 @@
-import { Quote } from "@/app/actions";
-import { GameMode, MaxSize, MaxWords } from "@/app/game";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
+import { GameMode, MaxSize, MaxWords, Quote } from "./definitions";
 
 export const cn = (...inputs: ClassValue[]) => twMerge(clsx(inputs))
 
@@ -132,18 +131,6 @@ export function getRandomText(
   return { text, source };
 }
 
-export function reconstructText(text: string, wordIdx: number, charIdx: number) {
-  const words = text.split(" ");
-
-  if (wordIdx < 0 || charIdx < 0) return "";
-
-  const typedWords = words.slice(0, wordIdx).join(" ");
-  const currentWordPart = words[wordIdx].slice(0, charIdx);
-
-  // Add space if there were previous words
-  return (typedWords ? typedWords + " " : "") + currentWordPart;
-}
-
 export function wrapParagraph(paragraph: string, maxChars: number) {
   const words = paragraph.split(/\s+/);
   const lines: string[] = [];
@@ -169,3 +156,32 @@ export function wrapParagraph(paragraph: string, maxChars: number) {
 
   return lines;
 }
+
+export function getDetailedLines(text: string) {
+  const MAX_CHARS_PER_LINE = 75;
+
+  const lines = wrapParagraph(text, MAX_CHARS_PER_LINE);
+
+  const detailedLines: [string, number][][] = []
+
+  let charIndex = 0
+
+  for (const line of lines) {
+    const detailedLine: [string, number][] = []
+
+    for (const char of line) {
+      detailedLine.push([char, charIndex])
+      charIndex++;
+    }
+
+    detailedLines.push(detailedLine)
+  }
+
+  return detailedLines
+}
+
+export function formatTime(secs: number) {
+  const mins = Math.floor(secs / 60);
+  const remainingSecs = secs % 60;
+  return `${String(mins).padStart(2, '0')}:${String(remainingSecs).padStart(2, '0')}`;
+};

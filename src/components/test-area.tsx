@@ -1,10 +1,10 @@
 'use client';
 
-import { Quote } from '@/app/actions';
-import { GameMode, MaxSize, MaxTime, MaxWords } from '@/app/game';
-import { cn, getRandomText, wrapParagraph } from '@/lib/utils';
+import { GameMode, MaxSize, MaxTime, MaxWords, Quote } from '@/lib/definitions';
+import { cn, formatTime, getRandomText } from '@/lib/utils';
 import { useEffect, useRef, useState } from 'react';
 import { Input } from './ui/input';
+import { WordsContainer } from './words-container';
 
 interface TestAreaProps {
   quotes: Quote[];
@@ -81,12 +81,6 @@ export default function TestArea({ quotes, words, gameMode, maxTime, maxSize, ma
     const acc = Math.round((correctChars / typedChars) * 100)
     setAccuracy(acc);
   }, [typedChars, correctChars])
-
-  const formatTime = (secs: number) => {
-    const mins = Math.floor(secs / 60);
-    const remainingSecs = secs % 60;
-    return `${String(mins).padStart(2, '0')}:${String(remainingSecs).padStart(2, '0')}`;
-  };
 
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -169,77 +163,4 @@ export default function TestArea({ quotes, words, gameMode, maxTime, maxSize, ma
       />
     </div>
   );
-}
-
-interface LettersProps {
-  text: string;
-  input: string;
-  finished: boolean;
-}
-
-function getDetailedLines(text: string) {
-  const MAX_CHARS_PER_LINE = 75;
-
-  const lines = wrapParagraph(text, MAX_CHARS_PER_LINE);
-
-  const detailedLines: [string, number][][] = []
-
-  let charIndex = 0
-
-  for (const line of lines) {
-    const detailedLine: [string, number][] = []
-
-    for (const char of line) {
-      detailedLine.push([char, charIndex])
-      charIndex++;
-    }
-
-    detailedLines.push(detailedLine)
-  }
-
-  return detailedLines
-}
-
-function WordsContainer({ text, input, finished }: LettersProps) {
-  const [detailedLines, setDetailedLines] = useState(getDetailedLines(text))
-
-  useEffect(() => {
-    setDetailedLines(getDetailedLines(text))
-  }, [text])
-
-
-  const currentCharIndex = input.length;
-  const currentLineIndex = detailedLines.findIndex(line => line.some(([, idx]) => idx === currentCharIndex));
-
-  const getCharClass = (idx: number) => {
-    if (!input[idx]) return null;
-    if (input[idx] === text[idx]) return 'text-green-700';
-    return 'text-red-700';
-  };
-
-  return (
-    <div className='text-2xl max-h-[4.8em] overflow-y-clip'>
-      <div className='w-min h-fit'>
-        {detailedLines.map((line, lineIdx) => (
-          <div key={"line-" + lineIdx} className={cn('flex w-fit', {
-            "hidden": lineIdx < currentLineIndex - 1 || lineIdx > currentLineIndex + 2,
-          })}>
-            {line.map(([char, charIdx]) => (
-              <span key={"char-" + charIdx} className={cn("relative text-[1em]/[1em] my-[0.3em]", getCharClass(charIdx))}>
-                {charIdx === input.length && !finished && <Caret />}
-
-                {char === " " ? "\u00A0" : char}
-              </span>
-            ))}
-          </div>
-        ))}
-      </div>
-    </div>
-  )
-}
-
-function Caret() {
-  return (
-    <div className="absolute h-[1.2em] w-[0.1em] bg-primary animate-blink rounded-full -left-[2px]" />
-  )
 }
