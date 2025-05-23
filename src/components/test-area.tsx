@@ -209,7 +209,7 @@ function WordsContainer({ text, input, finished }: LettersProps) {
 
 
   const currentCharIndex = input.length;
-  const currentLineIndex = detailedLines.findIndex(line => line.some(([_, idx]) => idx === currentCharIndex));
+  const currentLineIndex = detailedLines.findIndex(line => line.some(([, idx]) => idx === currentCharIndex));
 
   const getCharClass = (idx: number) => {
     if (!input[idx]) return null;
