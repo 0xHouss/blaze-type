@@ -10,30 +10,8 @@ import {
 } from "@/components/ui/dialog";
 import { faDiscord, faGithub } from "@fortawesome/free-brands-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { HandHeartIcon, UsersIcon } from "lucide-react";
+import { HandHeartIcon } from "lucide-react";
 import Link from "next/link";
-
-export function TeamButton() {
-  return (
-    <Dialog>
-      <DialogTrigger>
-        <Tooltiped content="Our Team" side="left">
-          <div className={buttonVariants({ variant: "outline", size: "icon" })}>
-            <UsersIcon />
-            <span className="sr-only">Our Team</span>
-          </div>
-        </Tooltiped>
-      </DialogTrigger>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Team Members</DialogTitle>
-          <DialogDescription>
-          </DialogDescription>
-        </DialogHeader>
-      </DialogContent>
-    </Dialog>
-  );
-}
 
 export function GithubButton() {
   return (
