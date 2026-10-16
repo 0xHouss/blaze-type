@@ -108,6 +108,8 @@ export interface TestStats {
   wpm: number;
   accuracy: number;
   seconds: number;
+  // Seconds left in time mode (counts down to 0); null in modes without a time limit
+  timeLeft: number | null;
 }
 
 export function getStats(state: TestState): TestStats {
@@ -122,5 +124,8 @@ export function getStats(state: TestState): TestStats {
   const wpm = elapsedMs >= 1000 ? Math.round(correctChars / 5 / (elapsedMs / 60000)) : 0;
   const accuracy = state.keystrokes ? Math.round((state.correctKeystrokes / state.keystrokes) * 100) : 100;
 
-  return { wpm, accuracy, seconds: Math.floor(elapsedMs / 1000) };
+  const seconds = Math.floor(elapsedMs / 1000);
+  const timeLeft = state.timeLimit === null ? null : Math.max(0, state.timeLimit - seconds);
+
+  return { wpm, accuracy, seconds, timeLeft };
 }
