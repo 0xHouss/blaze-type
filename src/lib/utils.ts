@@ -1,134 +1,116 @@
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
-import { GameMode, MaxSize, MaxWords, Quote } from "./definitions";
+import { MaxSize, Quote } from "./definitions";
 
 export const cn = (...inputs: ClassValue[]) => twMerge(clsx(inputs))
 
-export const countWords = (quote: string) => quote.split(" ").length
-
 export function saveToLocalStorage<T>(key: string, value: T) {
-  if (!localStorage) return
-
-  localStorage.setItem(key, JSON.stringify(value));
-}
-
-export function getFromLocalStorage<T>(key: string, fallback: T): T {
-  if (!localStorage) return fallback
-
-  const stored = localStorage.getItem(key);
-  if (!stored) return fallback;
-
   try {
-    return JSON.parse(stored) as T;
+    localStorage.setItem(key, JSON.stringify(value));
   } catch {
-    return fallback;
+    // Storage can be unavailable (private mode, quota exceeded); settings just won't persist
   }
 }
 
-export function getRandomText(
-  quotes: Quote[],
+export function getFromLocalStorage(key: string): unknown {
+  try {
+    const stored = localStorage.getItem(key);
+    return stored ? JSON.parse(stored) : null;
+  } catch {
+    return null;
+  }
+}
+
+export function filterQuotesBySize(quotes: Quote[], maxSize: MaxSize) {
+  return quotes.filter(quote => {
+    if (maxSize === "short") return quote.length <= 50;
+    if (maxSize === "medium") return quote.length > 50 && quote.length <= 100;
+    if (maxSize === "long") return quote.length > 100;
+    return true;
+  });
+}
+
+// Punctuation types with associated likelihoods
+const sentenceEndPunctuation = [
+  { mark: ".", weight: 0.7 },
+  { mark: "!", weight: 0.2 },
+  { mark: "?", weight: 0.1 }
+];
+
+export function generateText(
   words: string[],
-  gameMode: GameMode,
-  maxWords: MaxWords,
-  maxSize: MaxSize,
+  nbWords: number,
   punctuation: boolean,
-  numbers: boolean
+  numbers: boolean,
+  random: () => number = Math.random
 ) {
-  let text = "";
-  let source = "";
+  // Sample a word using Zipf-like weighted distribution (favors frequent words)
+  const sampleWord = () => {
+    const skew = 0.7;
+    const index = Math.floor(words.length * Math.pow(random(), skew));
+    return words[index];
+  };
 
-  // Handle quote mode: pick a quote based on selected size
-  if (gameMode === "quote") {
-    const filteredQuotes = quotes.filter(quote => {
-      if (maxSize === "short") return quote.length <= 50;
-      if (maxSize === "medium") return quote.length > 50 && quote.length <= 100;
-      if (maxSize === "long") return quote.length > 100;
-      return true;
-    });
+  // Select a sentence-ending punctuation mark based on weights
+  const getWeightedRandomPunctuation = () => {
+    const totalWeight = sentenceEndPunctuation.reduce((sum, p) => sum + p.weight, 0);
+    const rand = random() * totalWeight;
+    let cumulative = 0;
+    for (const p of sentenceEndPunctuation) {
+      cumulative += p.weight;
+      if (rand <= cumulative) return p.mark;
+    }
+    return ".";
+  };
 
-    const quote = filteredQuotes[Math.floor(Math.random() * filteredQuotes.length)];
-    text = quote.text;
-    source = quote.source;
-  } else {
-    const nbWords = gameMode === "words" ? maxWords : 25;
+  const finalSentences = [];
+  let wordCount = 0;
 
-    // Sample a word using Zipf-like weighted distribution (favors frequent words)
-    const sampleWord = () => {
-      const skew = 0.7;
-      const index = Math.floor(words.length * Math.pow(Math.random(), skew));
-      return words[index];
-    };
+  while (wordCount < nbWords) {
+    // Generate a sentence of 6–10 words
+    const sentenceLength = Math.floor(random() * 5) + 6;
+    const sentenceWords = [];
 
-    // Punctuation types with associated likelihoods
-    const sentenceEndPunctuation = [
-      { mark: ".", weight: 0.7 },
-      { mark: "!", weight: 0.2 },
-      { mark: "?", weight: 0.1 }
-    ];
-
-    // Select a sentence-ending punctuation mark based on weights
-    const getWeightedRandomPunctuation = () => {
-      const totalWeight = sentenceEndPunctuation.reduce((sum, p) => sum + p.weight, 0);
-      const rand = Math.random() * totalWeight;
-      let cumulative = 0;
-      for (const p of sentenceEndPunctuation) {
-        cumulative += p.weight;
-        if (rand <= cumulative) return p.mark;
-      }
-      return ".";
-    };
-
-    const finalSentences = [];
-    let wordCount = 0;
-
-    while (wordCount < nbWords) {
-      // Generate a sentence of 6–10 words
-      const sentenceLength = Math.floor(Math.random() * 5) + 6;
-      const sentenceWords = [];
-
-      for (let i = 0; i < sentenceLength && wordCount < nbWords; i++) {
-        // Occasionally insert numbers (as standalone tokens)
-        if (numbers && Math.random() < 0.15) {
-          sentenceWords.push(Math.floor(Math.random() * 100).toString());
-          wordCount++;
-          if (wordCount >= nbWords) break;
-        }
-
-        sentenceWords.push(sampleWord());
+    for (let i = 0; i < sentenceLength && wordCount < nbWords; i++) {
+      // Occasionally insert numbers (as standalone tokens)
+      if (numbers && random() < 0.15) {
+        sentenceWords.push(Math.floor(random() * 100).toString());
         wordCount++;
+        if (wordCount >= nbWords) break;
       }
 
-      // Capitalize the first word of the sentence
-      if (sentenceWords.length > 0 && punctuation) {
-        const w = sentenceWords[0];
-        sentenceWords[0] = w[0].toUpperCase() + w.slice(1);
-      }
-
-      // Insert 1–2 commas at natural positions if punctuation is enabled
-      if (punctuation && sentenceWords.length >= 6) {
-        const numCommas = Math.random() < 0.5 ? 1 : 2;
-        for (let i = 1; i <= numCommas; i++) {
-          const pos = Math.floor((i * sentenceWords.length) / (numCommas + 1));
-          if (pos < sentenceWords.length - 1) {
-            sentenceWords[pos] += ",";
-          }
-        }
-      }
-
-      // Join words into a sentence and add a final punctuation mark
-      let sentence = sentenceWords.join(" ");
-      if (punctuation) {
-        sentence += getWeightedRandomPunctuation();
-      }
-
-      finalSentences.push(sentence);
+      sentenceWords.push(sampleWord());
+      wordCount++;
     }
 
-    // Join all generated sentences into one paragraph
-    text = finalSentences.join(" ");
+    // Capitalize the first word of the sentence
+    if (sentenceWords.length > 0 && punctuation) {
+      const w = sentenceWords[0];
+      sentenceWords[0] = w[0].toUpperCase() + w.slice(1);
+    }
+
+    // Insert 1–2 commas at natural positions if punctuation is enabled
+    if (punctuation && sentenceWords.length >= 6) {
+      const numCommas = random() < 0.5 ? 1 : 2;
+      for (let i = 1; i <= numCommas; i++) {
+        const pos = Math.floor((i * sentenceWords.length) / (numCommas + 1));
+        if (pos < sentenceWords.length - 1) {
+          sentenceWords[pos] += ",";
+        }
+      }
+    }
+
+    // Join words into a sentence and add a final punctuation mark
+    let sentence = sentenceWords.join(" ");
+    if (punctuation) {
+      sentence += getWeightedRandomPunctuation();
+    }
+
+    finalSentences.push(sentence);
   }
 
-  return { text, source };
+  // Join all generated sentences into one paragraph
+  return finalSentences.join(" ");
 }
 
 export function wrapParagraph(paragraph: string, maxChars: number) {
@@ -157,10 +139,8 @@ export function wrapParagraph(paragraph: string, maxChars: number) {
   return lines;
 }
 
-export function getDetailedLines(text: string) {
-  const MAX_CHARS_PER_LINE = 75;
-
-  const lines = wrapParagraph(text, MAX_CHARS_PER_LINE);
+export function getDetailedLines(text: string, maxCharsPerLine: number) {
+  const lines = wrapParagraph(text, maxCharsPerLine);
 
   const detailedLines: [string, number][][] = []
 

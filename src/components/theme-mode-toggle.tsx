@@ -12,6 +12,12 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { cn } from "@/lib/utils"
 
+const modes = [
+  { value: "light", label: "Light" },
+  { value: "dark", label: "Dark" },
+  { value: "system", label: "System" },
+]
+
 export function ThemeModeToggle() {
   const { theme, setTheme } = useTheme()
 
@@ -25,12 +31,11 @@ export function ThemeModeToggle() {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent>
-        <DropdownMenuItem onClick={() => setTheme("light")} className={cn({ "bg-accent": theme === "light" })}>
-          Light
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => setTheme("dark")} className={cn({ "bg-accent": theme === "dark" })}>
-          Dark
-        </DropdownMenuItem>
+        {modes.map(mode => (
+          <DropdownMenuItem key={mode.value} onClick={() => setTheme(mode.value)} className={cn({ "bg-accent": theme === mode.value })}>
+            {mode.label}
+          </DropdownMenuItem>
+        ))}
       </DropdownMenuContent>
     </DropdownMenu>
   )

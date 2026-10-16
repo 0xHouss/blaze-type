@@ -1,79 +1,66 @@
 'use client'
 
 import { MenuBar } from "@/components/menu-bar";
-import TestArea from "@/components/test-area";
-import { GameMode, MaxSize, MaxTime, MaxWords, Quote } from "@/lib/definitions";
+import TestArea, { StatsBar, testAreaClassName } from "@/components/test-area";
+import { useTypingTest } from "@/hooks/use-typing-test";
+import { Config, parseConfig } from "@/lib/definitions";
 import { getFromLocalStorage, saveToLocalStorage } from "@/lib/utils";
-import { useEffect, useState } from "react";
+import { useState, useSyncExternalStore } from "react";
 
-export default function Game({ quotes, words }: { quotes: Quote[]; words: string[] }) {
-  const [isMounted, setIsMounted] = useState(false)
+const subscribe = () => () => {};
 
-  const [gameMode, setGameMode] = useState<GameMode>("words")
-  const [maxTime, setMaxTime] = useState<MaxTime>(30)
-  const [maxWords, setMaxWords] = useState<MaxWords>(50)
-  const [maxSize, setMaxSize] = useState<MaxSize>("all")
-  const [numbers, setNumbers] = useState(false)
-  const [punctuation, setPunctuation] = useState(false)
+export default function Game({ words }: { words: string[] }) {
+  // The test text is random and settings live in localStorage, so the interactive game only
+  // renders in the browser. The server sends the same layout with empty stats in its place.
+  const isClient = useSyncExternalStore(subscribe, () => true, () => false);
 
-  useEffect(() => {
-    if (isMounted) {
-      return saveToLocalStorage("config", {
-        gameMode,
-        maxTime,
-        maxWords,
-        maxSize,
-        numbers,
-        punctuation
-      })
-    }
+  if (!isClient) {
+    return (
+      <>
+        <div className={testAreaClassName}>
+          <StatsBar wpm={0} seconds={0} accuracy={100} finished={false} />
+        </div>
 
-    const config = getFromLocalStorage("config", {
-      gameMode: "words",
-      maxTime: 30,
-      maxWords: 50,
-      maxSize: "all",
-      numbers: false,
-      punctuation: false
-    } as const)
+        <BottomBar />
+      </>
+    );
+  }
 
-    setGameMode(config.gameMode)
-    setMaxTime(config.maxTime)
-    setMaxWords(config.maxWords)
-    setMaxSize(config.maxSize)
-    setNumbers(config.numbers)
-    setPunctuation(config.punctuation)
-    setIsMounted(true)
-  }, [gameMode, maxTime, maxWords, maxSize, numbers, punctuation])
+  return <ClientGame words={words} />;
+}
 
-  if (!isMounted) return <></>
+function ClientGame({ words }: { words: string[] }) {
+  const [config, setConfig] = useState(() => parseConfig(getFromLocalStorage("config")));
+  const test = useTypingTest(config, words);
+
+  function updateConfig(patch: Partial<Config>) {
+    const next = { ...config, ...patch };
+
+    setConfig(next);
+    saveToLocalStorage("config", next);
+    test.restart(next);
+  }
 
   return (
     <>
-      <TestArea quotes={quotes} words={words} gameMode={gameMode} maxTime={maxTime} maxWords={maxWords} maxSize={maxSize} numbers={numbers} punctuation={punctuation} />
+      <TestArea state={test.state} stats={test.stats} onType={test.type} onRestart={() => test.restart(config)} />
 
-      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex flex-col gap-5 items-center">
-        <div className="opacity-90">
-          Press <span className="px-2 py-1 bg-muted rounded-xs">Enter</span>
-          <span> to restart.</span>
-        </div>
-
-        <MenuBar
-          gameMode={gameMode}
-          setGameMode={setGameMode}
-          maxTime={maxTime}
-          setMaxTime={setMaxTime}
-          maxWords={maxWords}
-          setMaxWords={setMaxWords}
-          maxSize={maxSize}
-          setMaxSize={setMaxSize}
-          numbers={numbers}
-          setNumbers={setNumbers}
-          punctuation={punctuation}
-          setPunctuation={setPunctuation}
-        />
-      </div>
+      <BottomBar>
+        <MenuBar config={config} onChange={updateConfig} />
+      </BottomBar>
     </>
-  )
+  );
 }
 
+function BottomBar({ children }: { children?: React.ReactNode }) {
+  return (
+    <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex flex-col gap-5 items-center">
+      <div className="opacity-90 whitespace-nowrap">
+        Press <span className="px-2 py-1 bg-muted rounded-xs">Enter</span>
+        <span> to restart.</span>
+      </div>
+
+      {children}
+    </div>
+  );
+}
