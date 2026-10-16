@@ -24,18 +24,18 @@ A typing test game built with Next.js, Tailwind CSS and ShadcnUI. Test your typi
 ## Technologies Used 🛠️
 
 - **Frontend**:
-  - Next.js 15 (App Router)
+  - Next.js 16 (App Router)
   - React 19
   - TypeScript
   - Tailwind CSS
   - Shadcn UI (for accessible components)
   - Lucide Icons
-  - FontAwesome Icons
 
 - **Build Tools**:
   - PNPM (package manager)
   - ESLint (code linting)
-  - Prettier (code formatting)
+  - Vitest (unit tests)
+  - GitHub Actions (lint, type-check, test and build on every push and pull request)
 
 ## Installation 💻
 
@@ -59,6 +59,15 @@ A typing test game built with Next.js, Tailwind CSS and ShadcnUI. Test your typi
    ```
 
 4. Open [http://localhost:3000](http://localhost:3000) in your browser.
+
+Other scripts:
+
+```bash
+pnpm lint       # ESLint
+pnpm typecheck  # TypeScript
+pnpm test       # unit tests
+pnpm build      # production build
+```
 
 ## Deployment 🚀
 
