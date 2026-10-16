@@ -83,14 +83,14 @@ interface StatsBarProps extends TestStats {
   finished: boolean;
 }
 
-export function StatsBar({ wpm, seconds, accuracy, finished }: StatsBarProps) {
+export function StatsBar({ wpm, seconds, timeLeft, accuracy, finished }: StatsBarProps) {
   const valueClass = cn("text-foreground", { "text-primary": finished });
 
   return (
     <div className="relative flex flex-wrap justify-between text-muted-foreground items-center">
       <div className="sm:text-lg">WPM: <span className={valueClass}>{wpm}</span></div>
       {/* On phones the timer takes its own row above the other stats */}
-      <div role="timer" className={cn("max-sm:order-first max-sm:w-full max-sm:text-center sm:absolute sm:left-1/2 sm:-translate-x-1/2 text-4xl font-bold", valueClass)}>{formatTime(seconds)}</div>
+      <div role="timer" className={cn("max-sm:order-first max-sm:w-full max-sm:text-center sm:absolute sm:left-1/2 sm:-translate-x-1/2 text-4xl font-bold", valueClass)}>{formatTime(timeLeft ?? seconds)}</div>
       <div className='sm:text-lg'>Accuracy: <span className={valueClass}>{accuracy}%</span></div>
     </div>
   );

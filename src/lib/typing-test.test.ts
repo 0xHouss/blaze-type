@@ -95,7 +95,7 @@ describe("getStats", () => {
   });
 
   it("reports full accuracy before anything is typed", () => {
-    expect(getStats(load("abc"))).toEqual({ wpm: 0, accuracy: 100, seconds: 0 });
+    expect(getStats(load("abc"))).toEqual({ wpm: 0, accuracy: 100, seconds: 0, timeLeft: null });
   });
 
   it("reports elapsed whole seconds", () => {
@@ -105,6 +105,14 @@ describe("getStats", () => {
     );
 
     expect(getStats(state).seconds).toBe(2);
+  });
+
+  it("counts down in time mode, from the full limit to zero", () => {
+    const test = load("hello world", 15);
+
+    expect(getStats(test).timeLeft).toBe(15);
+    expect(getStats(run(test, { type: "input", value: "h", now: 0 }, { type: "tick", now: 2600 })).timeLeft).toBe(13);
+    expect(getStats(run(test, { type: "input", value: "h", now: 0 }, { type: "tick", now: 15_100 })).timeLeft).toBe(0);
   });
 });
 

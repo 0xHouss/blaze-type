@@ -18,7 +18,7 @@ export default function Game({ words }: { words: string[] }) {
     return (
       <>
         <div className={testAreaClassName}>
-          <StatsBar wpm={0} seconds={0} accuracy={100} finished={false} />
+          <StatsBar wpm={0} seconds={0} timeLeft={null} accuracy={100} finished={false} />
         </div>
 
         <BottomBar />
